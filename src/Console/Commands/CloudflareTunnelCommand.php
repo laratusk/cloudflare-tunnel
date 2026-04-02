@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Laratusk\CloudflareTunnel\Console\Commands;
 
-use Closure;
 use Illuminate\Console\Command;
 use Laratusk\CloudflareTunnel\Contracts\TunnelServiceInterface;
 use Laratusk\CloudflareTunnel\DTOs\TunnelConfig;
@@ -16,8 +15,6 @@ use Laratusk\CloudflareTunnel\Exceptions\CloudflareTunnelException;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\spin;
-
-use Throwable;
 
 final class CloudflareTunnelCommand extends Command
 {
@@ -51,21 +48,9 @@ final class CloudflareTunnelCommand extends Command
 
         TunnelConnected::dispatch($url, $config->mode);
 
-        if ($config->afterConnected instanceof Closure) {
-            try {
-                spin(
-                    callback: fn () => ($config->afterConnected)($url),
-                    message: 'Running after-connected callback...',
-                );
-                info('After-connected callback completed.');
-            } catch (Throwable $e) {
-                error('After-connected callback failed: '.$e->getMessage());
-            }
-        }
-
         $this->components->info('Tunnel is running. Press Ctrl+C to stop.');
 
-        $this->registerSignalHandlers($tunnel, $config, $url);
+        $this->registerSignalHandlers($tunnel, $url);
 
         while ($tunnel->isRunning()) {
             sleep(1);
@@ -97,12 +82,6 @@ final class CloudflareTunnelCommand extends Command
         /** @var string|null $hostHeader */
         $hostHeader = config('cloudflare-tunnel.host_header');
 
-        /** @var Closure(string): void|null $afterConnected */
-        $afterConnected = config('cloudflare-tunnel.after_connected');
-
-        /** @var Closure(string): void|null $beforeDisconnected */
-        $beforeDisconnected = config('cloudflare-tunnel.before_disconnected');
-
         return new TunnelConfig(
             mode: $mode,
             localUrl: $localUrl,
@@ -110,27 +89,16 @@ final class CloudflareTunnelCommand extends Command
             tunnelName: $tunnelName,
             hostname: $hostname,
             hostHeader: $hostHeader,
-            afterConnected: $afterConnected,
-            beforeDisconnected: $beforeDisconnected,
         );
     }
 
-    private function registerSignalHandlers(TunnelServiceInterface $tunnel, TunnelConfig $config, string $url): void
+    private function registerSignalHandlers(TunnelServiceInterface $tunnel, string $url): void
     {
         pcntl_async_signals(true);
 
-        $handler = function () use ($tunnel, $config, $url): void {
+        $handler = function () use ($tunnel, $url): void {
             $this->newLine();
             info('Stopping tunnel...');
-
-            if ($config->beforeDisconnected instanceof Closure) {
-                try {
-                    ($config->beforeDisconnected)($url);
-                    info('Before-disconnected callback completed.');
-                } catch (Throwable $e) {
-                    error('Before-disconnected callback failed: '.$e->getMessage());
-                }
-            }
 
             $tunnel->stop();
 

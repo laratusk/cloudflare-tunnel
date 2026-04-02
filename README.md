@@ -14,8 +14,7 @@ php artisan cloudflare:tunnel
 
 - **Quick tunnels** — Random `*.trycloudflare.com` URL, no account required
 - **Named tunnels** — Static hostname under your own domain (e.g. `tunnel.example.com`)
-- **Lifecycle callbacks** — Run code after the tunnel connects or before it disconnects (e.g. register/remove a Telegram webhook)
-- **Events** — `TunnelConnected` and `TunnelDisconnected` events dispatched automatically
+- **Events** — `TunnelConnected` and `TunnelDisconnected` events for webhook registration, notifications, etc.
 - **Graceful shutdown** — Clean process termination on `Ctrl+C`
 
 ## Requirements
@@ -156,42 +155,54 @@ php artisan cloudflare:tunnel
 | `CLOUDFLARE_TUNNEL_HOST_HEADER` | — | Override the Host header for local requests |
 | `CLOUDFLARE_TUNNEL_TIMEOUT` | `30` | Seconds to wait for tunnel connection |
 
-## Lifecycle Callbacks
-
-Register callbacks in your published `config/cloudflare-tunnel.php` to run code when the tunnel connects or disconnects. This is useful for webhook registration:
-
-```php
-use Telegram\Bot\Laravel\Facades\Telegram;
-
-return [
-    // ...
-
-    'after_connected' => function (string $url) {
-        Telegram::setWebhook(['url' => $url . '/api/telegram/webhook']);
-    },
-
-    'before_disconnected' => function (string $url) {
-        Telegram::deleteWebhook();
-    },
-];
-```
-
 ## Events
 
-The package dispatches two events that you can listen for:
+The package dispatches two events you can hook into with standard Laravel listeners:
 
-| Event | Payload |
-|---|---|
-| `TunnelConnected` | `string $url`, `TunnelMode $mode` |
-| `TunnelDisconnected` | `string $url` |
+| Event | Payload | When |
+|---|---|---|
+| `TunnelConnected` | `string $url`, `TunnelMode $mode` | After the tunnel is established |
+| `TunnelDisconnected` | `string $url` | Before the process exits (Ctrl+C) |
+
+### Example: Register a Telegram webhook
+
+Create a listener:
+
+```bash
+php artisan make:listener RegisterTelegramWebhook --event='\Laratusk\CloudflareTunnel\Events\TunnelConnected'
+```
 
 ```php
-use Laratusk\CloudflareTunnel\Events\TunnelConnected;
+namespace App\Listeners;
 
-Event::listen(TunnelConnected::class, function (TunnelConnected $event) {
-    Log::info("Tunnel connected: {$event->url}");
-});
+use Laratusk\CloudflareTunnel\Events\TunnelConnected;
+use Telegram\Bot\Laravel\Facades\Telegram;
+
+class RegisterTelegramWebhook
+{
+    public function handle(TunnelConnected $event): void
+    {
+        Telegram::setWebhook(['url' => $event->url . '/api/telegram/webhook']);
+    }
+}
 ```
+
+```php
+namespace App\Listeners;
+
+use Laratusk\CloudflareTunnel\Events\TunnelDisconnected;
+use Telegram\Bot\Laravel\Facades\Telegram;
+
+class RemoveTelegramWebhook
+{
+    public function handle(TunnelDisconnected $event): void
+    {
+        Telegram::deleteWebhook();
+    }
+}
+```
+
+Laravel auto-discovers listeners, so no manual registration is needed.
 
 ## Testing
 

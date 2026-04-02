@@ -22,7 +22,6 @@ it('publishes the config file', function (): void {
 
     expect(file_exists($configPath))->toBeTrue();
 
-    // Clean up
     unlink($configPath);
 });
 
@@ -50,41 +49,6 @@ it('dispatches TunnelConnected event on success', function (): void {
     Event::assertDispatched(TunnelConnected::class, function (TunnelConnected $event): bool {
         return $event->url === 'https://tunnel.example.com';
     });
-});
-
-it('runs after_connected callback when configured', function (): void {
-    $callbackRan = false;
-
-    config()->set('cloudflare-tunnel.after_connected', function (string $url) use (&$callbackRan): void {
-        $callbackRan = true;
-        expect($url)->toBe('https://tunnel.example.com');
-    });
-
-    $mock = Mockery::mock(TunnelServiceInterface::class);
-    $mock->shouldReceive('start')->once()->andReturn('https://tunnel.example.com');
-    $mock->shouldReceive('isRunning')->andReturn(false);
-
-    $this->app->instance(TunnelServiceInterface::class, $mock);
-
-    $this->artisan('cloudflare:tunnel');
-
-    expect($callbackRan)->toBeTrue();
-});
-
-it('handles after_connected callback failure gracefully', function (): void {
-    config()->set('cloudflare-tunnel.after_connected', function (): void {
-        throw new RuntimeException('Webhook failed');
-    });
-
-    $mock = Mockery::mock(TunnelServiceInterface::class);
-    $mock->shouldReceive('start')->once()->andReturn('https://tunnel.example.com');
-    $mock->shouldReceive('isRunning')->andReturn(false);
-
-    $this->app->instance(TunnelServiceInterface::class, $mock);
-
-    // Should not throw, should handle gracefully
-    $this->artisan('cloudflare:tunnel')
-        ->assertFailed(); // Fails because tunnel exits (isRunning = false)
 });
 
 it('reads config values correctly', function (): void {

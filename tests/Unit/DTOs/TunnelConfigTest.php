@@ -17,15 +17,10 @@ it('can be constructed with minimal parameters', function (): void {
         ->and($config->timeout)->toBe(30)
         ->and($config->tunnelName)->toBeNull()
         ->and($config->hostname)->toBeNull()
-        ->and($config->hostHeader)->toBeNull()
-        ->and($config->afterConnected)->toBeNull()
-        ->and($config->beforeDisconnected)->toBeNull();
+        ->and($config->hostHeader)->toBeNull();
 });
 
 it('can be constructed with all parameters', function (): void {
-    $afterConnected = fn (string $url): null => null;
-    $beforeDisconnected = fn (string $url): null => null;
-
     $config = new TunnelConfig(
         mode: TunnelMode::Named,
         localUrl: 'http://127.0.0.1:8080',
@@ -33,8 +28,6 @@ it('can be constructed with all parameters', function (): void {
         tunnelName: 'my-tunnel',
         hostname: 'tunnel.example.com',
         hostHeader: 'myapp.test',
-        afterConnected: $afterConnected,
-        beforeDisconnected: $beforeDisconnected,
     );
 
     expect($config->mode)->toBe(TunnelMode::Named)
@@ -42,7 +35,5 @@ it('can be constructed with all parameters', function (): void {
         ->and($config->timeout)->toBe(60)
         ->and($config->tunnelName)->toBe('my-tunnel')
         ->and($config->hostname)->toBe('tunnel.example.com')
-        ->and($config->hostHeader)->toBe('myapp.test')
-        ->and($config->afterConnected)->toBe($afterConnected)
-        ->and($config->beforeDisconnected)->toBe($beforeDisconnected);
+        ->and($config->hostHeader)->toBe('myapp.test');
 });

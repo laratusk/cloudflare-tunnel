@@ -61,33 +61,4 @@ return [
 
     'timeout' => (int) env('CLOUDFLARE_TUNNEL_TIMEOUT', 30),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Callbacks
-    |--------------------------------------------------------------------------
-    |
-    | Optional callbacks that fire after the tunnel connects or before it
-    | disconnects. Useful for registering/removing webhooks, sending
-    | notifications, or any other side effects.
-    |
-    | Each value should be a callable or null. The `after_connected` callback
-    | receives the tunnel URL as its only argument. The `before_disconnected`
-    | callback receives the tunnel URL as well.
-    |
-    | Example:
-    |
-    |   'after_connected' => function (string $url) {
-    |       Telegram::setWebhook(['url' => $url . '/webhook']);
-    |   },
-    |
-    |   'before_disconnected' => function (string $url) {
-    |       Telegram::deleteWebhook();
-    |   },
-    |
-    */
-
-    'after_connected' => null,
-
-    'before_disconnected' => null,
-
 ];
