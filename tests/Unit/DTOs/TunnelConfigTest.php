@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Laratusk\CloudflareTunnel\DTOs\TunnelConfig;
 use Laratusk\CloudflareTunnel\Enums\TunnelMode;
 
-it('can be constructed with minimal parameters', function () {
+it('can be constructed with minimal parameters', function (): void {
     $config = new TunnelConfig(
         mode: TunnelMode::Quick,
         localUrl: 'http://127.0.0.1',
@@ -22,9 +22,9 @@ it('can be constructed with minimal parameters', function () {
         ->and($config->beforeDisconnected)->toBeNull();
 });
 
-it('can be constructed with all parameters', function () {
-    $afterConnected = fn (string $url) => null;
-    $beforeDisconnected = fn (string $url) => null;
+it('can be constructed with all parameters', function (): void {
+    $afterConnected = fn (string $url): null => null;
+    $beforeDisconnected = fn (string $url): null => null;
 
     $config = new TunnelConfig(
         mode: TunnelMode::Named,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Laratusk\CloudflareTunnel\Exceptions\InvalidConfigurationException;
 
-it('creates a missing named tunnel config exception', function () {
+it('creates a missing named tunnel config exception', function (): void {
     $exception = InvalidConfigurationException::missingNamedTunnelConfig();
 
     expect($exception)

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Laratusk\CloudflareTunnel\Support\ProcessManager;
 
-it('can open and terminate a process', function () {
+it('can open and terminate a process', function (): void {
     $manager = new ProcessManager;
 
     $result = $manager->open(['echo', 'hello']);
@@ -16,19 +16,19 @@ it('can open and terminate a process', function () {
     expect($manager->isRunning())->toBeFalse();
 });
 
-it('reports not running when no process is started', function () {
+it('reports not running when no process is started', function (): void {
     $manager = new ProcessManager;
 
     expect($manager->isRunning())->toBeFalse();
 });
 
-it('returns null from stderr when no process is started', function () {
+it('returns null from stderr when no process is started', function (): void {
     $manager = new ProcessManager;
 
     expect($manager->readStderr())->toBeNull();
 });
 
-it('can read stderr output', function () {
+it('can read stderr output', function (): void {
     $manager = new ProcessManager;
 
     // Write to stderr using bash

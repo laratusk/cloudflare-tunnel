@@ -38,20 +38,20 @@ final class CloudflareTunnelCommand extends Command
         try {
             /** @var string $url */
             $url = spin(
-                callback: fn () => $tunnel->start($config),
+                callback: fn (): string => $tunnel->start($config),
                 message: 'Starting Cloudflare Tunnel...',
             );
-        } catch (CloudflareTunnelException $e) {
-            error($e->getMessage());
+        } catch (CloudflareTunnelException $cloudflareTunnelException) {
+            error($cloudflareTunnelException->getMessage());
 
             return self::FAILURE;
         }
 
-        info("Tunnel URL: {$url}");
+        info('Tunnel URL: '.$url);
 
         TunnelConnected::dispatch($url, $config->mode);
 
-        if ($config->afterConnected !== null) {
+        if ($config->afterConnected instanceof Closure) {
             try {
                 spin(
                     callback: fn () => ($config->afterConnected)($url),
@@ -59,7 +59,7 @@ final class CloudflareTunnelCommand extends Command
                 );
                 info('After-connected callback completed.');
             } catch (Throwable $e) {
-                error("After-connected callback failed: {$e->getMessage()}");
+                error('After-connected callback failed: '.$e->getMessage());
             }
         }
 
@@ -123,12 +123,12 @@ final class CloudflareTunnelCommand extends Command
             $this->newLine();
             info('Stopping tunnel...');
 
-            if ($config->beforeDisconnected !== null) {
+            if ($config->beforeDisconnected instanceof Closure) {
                 try {
                     ($config->beforeDisconnected)($url);
                     info('Before-disconnected callback completed.');
                 } catch (Throwable $e) {
-                    error("Before-disconnected callback failed: {$e->getMessage()}");
+                    error('Before-disconnected callback failed: '.$e->getMessage());
                 }
             }
 

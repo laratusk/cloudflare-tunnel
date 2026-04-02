@@ -23,6 +23,8 @@ final class TunnelService implements TunnelServiceInterface
 
     public function start(TunnelConfig $config): string
     {
+        $this->validateConfig($config);
+
         CloudflaredBinary::path();
 
         $command = $this->buildCommand($config);
@@ -47,6 +49,16 @@ final class TunnelService implements TunnelServiceInterface
     }
 
     /**
+     * Validate the tunnel configuration before starting.
+     */
+    private function validateConfig(TunnelConfig $config): void
+    {
+        if ($config->mode === TunnelMode::Named && ($config->tunnelName === null || $config->hostname === null)) {
+            throw InvalidConfigurationException::missingNamedTunnelConfig();
+        }
+    }
+
+    /**
      * Build the cloudflared command arguments.
      *
      * @return list<string>
@@ -54,11 +66,7 @@ final class TunnelService implements TunnelServiceInterface
     private function buildCommand(TunnelConfig $config): array
     {
         if ($config->mode === TunnelMode::Named) {
-            if ($config->tunnelName === null || $config->hostname === null) {
-                throw InvalidConfigurationException::missingNamedTunnelConfig();
-            }
-
-            return ['cloudflared', 'tunnel', 'run', $config->tunnelName];
+            return ['cloudflared', 'tunnel', 'run', (string) $config->tunnelName];
         }
 
         $command = ['cloudflared', 'tunnel', '--url', $config->localUrl];
