@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Laratusk\CloudflareTunnel\Services;
 
+use Laratusk\CloudflareTunnel\Contracts\CloudflaredResolverInterface;
+use Laratusk\CloudflareTunnel\Contracts\ProcessManagerInterface;
 use Laratusk\CloudflareTunnel\Contracts\TunnelServiceInterface;
 use Laratusk\CloudflareTunnel\DTOs\TunnelConfig;
 use Laratusk\CloudflareTunnel\Enums\TunnelMode;
@@ -14,18 +16,21 @@ use Laratusk\CloudflareTunnel\Support\ProcessManager;
 
 final class TunnelService implements TunnelServiceInterface
 {
-    private readonly ProcessManager $process;
+    private readonly ProcessManagerInterface $process;
 
-    public function __construct(?ProcessManager $process = null)
+    private readonly CloudflaredResolverInterface $binary;
+
+    public function __construct(?ProcessManagerInterface $process = null, ?CloudflaredResolverInterface $binary = null)
     {
         $this->process = $process ?? new ProcessManager;
+        $this->binary = $binary ?? new CloudflaredBinary;
     }
 
     public function start(TunnelConfig $config): string
     {
         $this->validateConfig($config);
 
-        CloudflaredBinary::path();
+        $this->binary->resolve();
 
         $command = $this->buildCommand($config);
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Laratusk\CloudflareTunnel\Support;
 
-final class ProcessManager
+use Laratusk\CloudflareTunnel\Contracts\ProcessManagerInterface;
+
+final class ProcessManager implements ProcessManagerInterface
 {
     /** @var resource|null */
     private mixed $process = null;

@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Laratusk\CloudflareTunnel\Support;
 
+use Laratusk\CloudflareTunnel\Contracts\CloudflaredResolverInterface;
 use Laratusk\CloudflareTunnel\Exceptions\CloudflaredNotFoundException;
 
-final class CloudflaredBinary
+final class CloudflaredBinary implements CloudflaredResolverInterface
 {
     /**
      * Resolve the absolute path to the `cloudflared` binary.
      *
      * @throws CloudflaredNotFoundException
      */
-    public static function path(): string
+    public function resolve(): string
     {
         $path = trim((string) shell_exec('which cloudflared'));
 

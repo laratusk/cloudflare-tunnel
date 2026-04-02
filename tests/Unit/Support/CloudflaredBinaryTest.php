@@ -6,7 +6,8 @@ use Laratusk\CloudflareTunnel\Exceptions\CloudflaredNotFoundException;
 use Laratusk\CloudflareTunnel\Support\CloudflaredBinary;
 
 it('returns a non-empty path when cloudflared is installed', function (): void {
-    $path = CloudflaredBinary::path();
+    $binary = new CloudflaredBinary;
+    $path = $binary->resolve();
 
     expect($path)->toBeString()
         ->and($path)->not->toBeEmpty()
@@ -19,7 +20,7 @@ it('throws an exception when cloudflared is not found', function (): void {
     putenv('PATH=');
 
     try {
-        CloudflaredBinary::path();
+        (new CloudflaredBinary)->resolve();
     } finally {
         putenv('PATH='.$originalPath);
     }
